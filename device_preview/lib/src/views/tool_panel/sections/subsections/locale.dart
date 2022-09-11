@@ -29,7 +29,7 @@ class _LocalePickerState extends State<LocalePicker> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('Locale'),
+        title: Text(DevicePreviewLocaleProvider.of(context).lang),
       ),
       body: Padding(
         padding: const EdgeInsets.only(left: 10.0),

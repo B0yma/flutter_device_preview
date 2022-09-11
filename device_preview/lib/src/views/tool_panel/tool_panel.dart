@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
+import '../../../device_preview.dart';
+
 /// The panel which contains all the tools.
 class ToolPanel extends StatelessWidget {
   /// Create a new panel from the given tools grouped as [slivers].
@@ -79,7 +81,7 @@ class _ToolPanel extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Device preview',
+          DevicePreviewLocaleProvider.of(context).devicePreview,
           style: theme.textTheme.headline6?.copyWith(
             fontSize: 14,
             fontWeight: FontWeight.bold,

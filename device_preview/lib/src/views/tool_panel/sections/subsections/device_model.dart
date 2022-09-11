@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../../device_preview.dart';
 import '../section.dart';
 
 part 'custom_device.dart';
@@ -60,7 +61,7 @@ class _DeviceModelPickerState extends State<DeviceModelPicker>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Device model'),
+        title: Text(DevicePreviewLocaleProvider.of(context).devicePreview),
         bottom: TabBar(
           controller: controller,
           isScrollable: true,

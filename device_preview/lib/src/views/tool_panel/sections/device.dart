@@ -1,12 +1,10 @@
-import 'package:device_preview/src/state/store.dart';
 import 'package:device_preview/src/views/tool_panel/sections/subsections/device_model.dart';
 import 'package:device_preview/src/views/tool_panel/widgets/device_type_icon.dart';
 import 'package:device_preview/src/views/tool_panel/widgets/target_platform_icon.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
-import 'section.dart';
+import '../../../../device_preview.dart';
 
 /// All the simulated properties for the device.
 class DeviceSection extends StatelessWidget {
@@ -60,12 +58,12 @@ class DeviceSection extends StatelessWidget {
     );
 
     return ToolPanelSection(
-      title: 'Device',
+      title: DevicePreviewLocaleProvider.of(context).device,
       children: [
         if (model)
           ListTile(
             key: const Key('model'),
-            title: const Text('Model'),
+            title: Text(DevicePreviewLocaleProvider.of(context).device),
             subtitle: Text(deviceName),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -126,13 +124,14 @@ class DeviceSection extends StatelessWidget {
           ListTile(
             key: const Key('frame'),
             title: const Text('Frame visibility'),
-            subtitle: Text(isFrameVisible ? 'Visible' : 'Hidden'),
+            subtitle: Text(isFrameVisible
+                ? DevicePreviewLocaleProvider.of(context).visible
+                : DevicePreviewLocaleProvider.of(context).hidden,
+            ),
             trailing: Opacity(
               opacity: isFrameVisible ? 1.0 : 0.3,
               child: Icon(
-                isFrameVisible
-                    ? Icons.border_outer_rounded
-                    : Icons.border_clear_rounded,
+                isFrameVisible ? Icons.border_outer_rounded : Icons.border_clear_rounded,
               ),
             ),
             onTap: () {
@@ -143,14 +142,16 @@ class DeviceSection extends StatelessWidget {
         if (virtualKeyboard)
           ListTile(
             key: const Key('keyboard'),
-            title: const Text('Virtual keyboard preview'),
-            subtitle: Text(isVirtualKeyboardVisible ? 'Visible' : 'Hidden'),
+            title: Text(DevicePreviewLocaleProvider.of(context).virtualKeyboardPreview),
+            subtitle: Text(
+              isVirtualKeyboardVisible
+                  ? DevicePreviewLocaleProvider.of(context).visible
+                  : DevicePreviewLocaleProvider.of(context).hidden,
+            ),
             trailing: Opacity(
               opacity: isVirtualKeyboardVisible ? 1.0 : 0.3,
               child: Icon(
-                isVirtualKeyboardVisible
-                    ? Icons.keyboard
-                    : Icons.keyboard_outlined,
+                isVirtualKeyboardVisible ? Icons.keyboard : Icons.keyboard_outlined,
               ),
             ),
             onTap: () {

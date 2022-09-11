@@ -19,6 +19,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui' as ui;
 
+import '../device_preview.dart';
 import 'locales/default_locales.dart';
 import 'utilities/screenshot.dart';
 import 'views/large.dart';
@@ -61,7 +62,10 @@ class DevicePreview extends StatefulWidget {
     this.storage,
     this.enabled = true,
     this.backgroundColor,
+    this.devicePreviewLocale,
   }) : super(key: key);
+
+  final DevicePreviewLocale? devicePreviewLocale;
 
   /// If not [enabled], the [child] is used directly.
   final bool enabled;
@@ -477,172 +481,175 @@ class _DevicePreviewState extends State<DevicePreview> {
       );
     }
 
-    return ChangeNotifierProvider(
-      create: (context) => DevicePreviewStore(
-        defaultDevice: widget.defaultDevice ?? Devices.ios.iPhone13,
-        devices: widget.devices,
-        locales: widget.availableLocales,
-        storage: storage,
-      ),
-      builder: (context, child) {
-        final isInitialized = context.select(
-          (DevicePreviewStore store) => store.state.maybeMap(
-            initialized: (_) => true,
-            orElse: () => false,
-          ),
-        );
-
-        if (!isInitialized) {
-          return Builder(
-            key: _appKey,
-            builder: widget.builder,
+    return DevicePreviewLocaleProvider(
+      devicePreviewLocale: widget.devicePreviewLocale ?? devicePreviewLocaleProviderEn(),
+      child: ChangeNotifierProvider(
+        create: (context) => DevicePreviewStore(
+          defaultDevice: widget.defaultDevice ?? Devices.ios.iPhone13,
+          devices: widget.devices,
+          locales: widget.availableLocales,
+          storage: storage,
+        ),
+        builder: (context, child) {
+          final isInitialized = context.select(
+            (DevicePreviewStore store) => store.state.maybeMap(
+              initialized: (_) => true,
+              orElse: () => false,
+            ),
           );
-        }
 
-        final isEnabled = context.select(
-          (DevicePreviewStore store) => store.data.isEnabled,
-        );
-
-        final toolbarTheme = context.select(
-          (DevicePreviewStore store) => store.settings.toolbarTheme,
-        );
-
-        final backgroundTheme = context.select(
-          (DevicePreviewStore store) => store.settings.backgroundTheme,
-        );
-
-        final isToolbarVisible = widget.isToolbarVisible &&
-            context.select(
-              (DevicePreviewStore store) => store.data.isToolbarVisible,
+          if (!isInitialized) {
+            return Builder(
+              key: _appKey,
+              builder: widget.builder,
             );
+          }
 
-        final toolbar = toolbarTheme.asThemeData();
-        final background = backgroundTheme.asThemeData();
-        return Directionality(
-          textDirection: TextDirection.ltr,
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 400),
-            child: MediaQueryObserver(
-              //mediaQuery: DevicePreview._mediaQuery(context),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: toolbar.scaffoldBackgroundColor,
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final mediaQuery = MediaQuery.of(context);
-                    final isSmall = constraints.maxWidth < 700;
+          final isEnabled = context.select(
+            (DevicePreviewStore store) => store.data.isEnabled,
+          );
 
-                    final borderRadius = isToolbarVisible
-                        ? BorderRadius.only(
-                            topRight: isSmall
-                                ? Radius.zero
-                                : const Radius.circular(16),
-                            bottomRight: const Radius.circular(16),
-                            bottomLeft: isSmall
-                                ? const Radius.circular(16)
-                                : Radius.zero,
-                          )
-                        : BorderRadius.zero;
-                    final double rightPanelOffset = !isSmall
-                        ? (isEnabled
-                            ? ToolPanel.panelWidth - 10
-                            : (64 + mediaQuery.padding.right))
-                        : 0;
-                    final double bottomPanelOffset =
-                        isSmall ? mediaQuery.padding.bottom + 52 : 0;
-                    return Stack(
-                      children: <Widget>[
-                        if (isToolbarVisible && isSmall)
-                          Positioned(
-                            key: const Key('Small'),
-                            bottom: 0,
-                            right: 0,
+          final toolbarTheme = context.select(
+            (DevicePreviewStore store) => store.settings.toolbarTheme,
+          );
+
+          final backgroundTheme = context.select(
+            (DevicePreviewStore store) => store.settings.backgroundTheme,
+          );
+
+          final isToolbarVisible = widget.isToolbarVisible &&
+              context.select(
+                (DevicePreviewStore store) => store.data.isToolbarVisible,
+              );
+
+          final toolbar = toolbarTheme.asThemeData();
+          final background = backgroundTheme.asThemeData();
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              child: MediaQueryObserver(
+                //mediaQuery: DevicePreview._mediaQuery(context),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: toolbar.scaffoldBackgroundColor,
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final mediaQuery = MediaQuery.of(context);
+                      final isSmall = constraints.maxWidth < 700;
+
+                      final borderRadius = isToolbarVisible
+                          ? BorderRadius.only(
+                              topRight: isSmall
+                                  ? Radius.zero
+                                  : const Radius.circular(16),
+                              bottomRight: const Radius.circular(16),
+                              bottomLeft: isSmall
+                                  ? const Radius.circular(16)
+                                  : Radius.zero,
+                            )
+                          : BorderRadius.zero;
+                      final double rightPanelOffset = !isSmall
+                          ? (isEnabled
+                              ? ToolPanel.panelWidth - 10
+                              : (64 + mediaQuery.padding.right))
+                          : 0;
+                      final double bottomPanelOffset =
+                          isSmall ? mediaQuery.padding.bottom + 52 : 0;
+                      return Stack(
+                        children: <Widget>[
+                          if (isToolbarVisible && isSmall)
+                            Positioned(
+                              key: const Key('Small'),
+                              bottom: 0,
+                              right: 0,
+                              left: 0,
+                              child: DevicePreviewSmallLayout(
+                                slivers: widget.tools,
+                                maxMenuHeight: constraints.maxHeight * 0.5,
+                                scaffoldKey: scaffoldKey,
+                                onMenuVisibleChanged: (isVisible) => setState(() {
+                                  _isToolPanelPopOverOpen = isVisible;
+                                }),
+                              ),
+                            ),
+                          if (isToolbarVisible && !isSmall)
+                            Positioned.fill(
+                              key: const Key('Large'),
+                              child: DervicePreviewLargeLayout(
+                                slivers: widget.tools,
+                              ),
+                            ),
+                          AnimatedPositioned(
+                            key: const Key('preview'),
+                            duration: const Duration(milliseconds: 200),
                             left: 0,
-                            child: DevicePreviewSmallLayout(
-                              slivers: widget.tools,
-                              maxMenuHeight: constraints.maxHeight * 0.5,
-                              scaffoldKey: scaffoldKey,
-                              onMenuVisibleChanged: (isVisible) => setState(() {
-                                _isToolPanelPopOverOpen = isVisible;
-                              }),
-                            ),
-                          ),
-                        if (isToolbarVisible && !isSmall)
-                          Positioned.fill(
-                            key: const Key('Large'),
-                            child: DervicePreviewLargeLayout(
-                              slivers: widget.tools,
-                            ),
-                          ),
-                        AnimatedPositioned(
-                          key: const Key('preview'),
-                          duration: const Duration(milliseconds: 200),
-                          left: 0,
-                          right: isToolbarVisible ? rightPanelOffset : 0,
-                          top: 0,
-                          bottom: isToolbarVisible ? bottomPanelOffset : 0,
-                          child: Theme(
-                            data: background,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                boxShadow: const [
-                                  BoxShadow(
-                                    blurRadius: 20,
-                                    color: Color(0xAA000000),
-                                  ),
-                                ],
-                                borderRadius: borderRadius,
-                                color: background.scaffoldBackgroundColor,
-                              ),
-                              child: ClipRRect(
-                                borderRadius: borderRadius,
-                                child: isEnabled
-                                    ? Builder(
-                                        builder: _buildPreview,
-                                      )
-                                    : Builder(
-                                        key: _appKey,
-                                        builder: widget.builder,
-                                      ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned.fill(
-                          child: IgnorePointer(
-                            ignoring: !_isToolPanelPopOverOpen,
-                            child: Localizations(
-                              locale: const Locale('en', 'US'),
-                              delegates: const [
-                                GlobalMaterialLocalizations.delegate,
-                                GlobalCupertinoLocalizations.delegate,
-                                GlobalWidgetsLocalizations.delegate,
-                              ],
-                              child: Navigator(
-                                onGenerateInitialRoutes: (navigator, name) {
-                                  return [
-                                    MaterialPageRoute(
-                                      builder: (context) => Scaffold(
-                                        key: scaffoldKey,
-                                        backgroundColor: Colors.transparent,
-                                      ),
+                            right: isToolbarVisible ? rightPanelOffset : 0,
+                            top: 0,
+                            bottom: isToolbarVisible ? bottomPanelOffset : 0,
+                            child: Theme(
+                              data: background,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      blurRadius: 20,
+                                      color: Color(0xAA000000),
                                     ),
-                                  ];
-                                },
+                                  ],
+                                  borderRadius: borderRadius,
+                                  color: background.scaffoldBackgroundColor,
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: borderRadius,
+                                  child: isEnabled
+                                      ? Builder(
+                                          builder: _buildPreview,
+                                        )
+                                      : Builder(
+                                          key: _appKey,
+                                          builder: widget.builder,
+                                        ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    );
-                  },
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              ignoring: !_isToolPanelPopOverOpen,
+                              child: Localizations(
+                                locale: const Locale('en', 'US'),
+                                delegates: const [
+                                  GlobalMaterialLocalizations.delegate,
+                                  GlobalCupertinoLocalizations.delegate,
+                                  GlobalWidgetsLocalizations.delegate,
+                                ],
+                                child: Navigator(
+                                  onGenerateInitialRoutes: (navigator, name) {
+                                    return [
+                                      MaterialPageRoute(
+                                        builder: (context) => Scaffold(
+                                          key: scaffoldKey,
+                                          backgroundColor: Colors.transparent,
+                                        ),
+                                      ),
+                                    ];
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 

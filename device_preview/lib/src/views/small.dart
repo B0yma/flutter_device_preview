@@ -1,3 +1,4 @@
+import 'package:device_preview/src/locales/device_preview_locale_provider.dart';
 import 'package:device_preview/src/state/store.dart';
 import 'package:device_preview/src/views/theme.dart';
 import 'package:flutter/material.dart';
@@ -83,7 +84,7 @@ class _BottomToolbar extends StatelessWidget {
     );
     return Material(
       child: ListTile(
-        title: const Text('Device Preview'),
+        title: Text(DevicePreviewLocaleProvider.of(context).devicePreview),
         onTap: isEnabled ? showPanel : null,
         leading: const Icon(Icons.tune),
         trailing: Switch(
